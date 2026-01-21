@@ -1,6 +1,8 @@
 using System.Collections.Concurrent;
 using System.Globalization;
 using System.Text;
+using System.Linq;
+using System.Collections.Generic;
 using Miningcore.Blockchain.Bitcoin.Configuration;
 using Miningcore.Blockchain.Bitcoin.DaemonResponses;
 using Miningcore.Configuration;
@@ -955,6 +957,111 @@ public class BitcoinJob
             BlockTemplate.CurTime.ToStringHex8(),
             false
         };
+    }
+
+    // MFLEX PoL: embed MinerID into coinbase via additional OP_RETURN output (no miner protocol support required).
+    // Payload: ASCII "MFLEXID" (7 bytes) + tag (4/8/12 bytes)
+    // Delta: Adjusts the first positive-value output (pool payout). Delta can be negative (burn the difference).
+        // MFLEX PoL: embed MinerID into coinbase via additional OP_RETURN output (no miner protocol support required).
+    // Payload: ASCII "MFLEXID" (7 bytes) + tag (4/8/12 bytes)
+    // Delta: Adjusts the pool payout output (last positive-value output). Delta can be negative (burn the difference).
+    // Bonus (Option1): optionally pay a "bonus" amount directly to bonusAddress (blockfinder). This amount is subtracted from the pool payout output
+    //                 so the overall coinbase total remains unchanged.
+    private byte[] BuildCoinbaseFinalWithMflexId(byte[] tag, long deltaSats, string bonusAddress, long bonusSats)
+    {
+        if(tag == null || (tag.Length != 4 && tag.Length != 8 && tag.Length != 12))
+            return coinbaseFinal;
+
+        // clone txOut and modify outputs per-miner
+        var tx = txOut.Clone();
+
+        // Pool payout output is the last positive-value output (the "remainder" output to the pool address)
+        var poolOutIndex = -1;
+        for(int i = tx.Outputs.Count - 1; i >= 0; i--)
+        {
+            if(tx.Outputs[i].Value > Money.Zero)
+            {
+                poolOutIndex = i;
+                break;
+            }
+        }
+
+        // Apply delta to pool payout output
+        if(deltaSats != 0 && poolOutIndex >= 0)
+        {
+            var cur = tx.Outputs[poolOutIndex].Value.Satoshi;
+            var next = cur + deltaSats;
+            if(next < 0) next = 0;
+            tx.Outputs[poolOutIndex].Value = Money.Satoshis(next);
+        }
+
+        // Option1: pay bonus directly to blockfinder address, subtracting from pool payout output
+        if(bonusSats > 0 && poolOutIndex >= 0 && !string.IsNullOrEmpty(bonusAddress))
+        {
+            try
+            {
+                var bonusDest = BitcoinAddress.Create(bonusAddress, network);
+                var bonusScript = bonusDest.ScriptPubKey;
+
+                var poolCur = tx.Outputs[poolOutIndex].Value.Satoshi;
+                var pay = Math.Min(bonusSats, poolCur);
+
+                if(pay > 0)
+                {
+                    tx.Outputs[poolOutIndex].Value = Money.Satoshis(poolCur - pay);
+                    tx.Outputs.Add(Money.Satoshis(pay), bonusScript);
+                }
+            }
+            catch
+            {
+                // ignore invalid address
+            }
+        }
+
+        // Append MFLEXID OP_RETURN (0-value)
+        var payload = Encoding.ASCII.GetBytes("MFLEXID").Concat(tag).ToArray();
+        var script = TxNullDataTemplate.Instance.GenerateScriptPubKey(payload);
+        tx.Outputs.Add(Money.Zero, script);
+
+        // rebuild coinbase final (scriptSig final + sequence + outputs + locktime)
+        using(var stream = new MemoryStream())
+        {
+            var bs = new BitcoinStream(stream, true);
+
+            // txin scriptSig final
+            bs.ReadWrite(scriptSigFinalBytes);
+
+            // txin sequence
+            bs.ReadWrite(ref txInSequence);
+
+            // outputs
+            var txOutBytes = SerializeOutputTransaction(tx);
+            bs.ReadWrite(txOutBytes);
+
+            // tx locktime
+            bs.ReadWrite(ref txLockTime);
+
+            return stream.ToArray();
+        }
+    }
+
+
+    /// <summary>
+    /// Returns a shallow clone of this job with coinbaseFinal modified to include MFLEXID OP_RETURN(tag).
+    /// This makes the miner tag land on-chain without relying on mining.set_extranonce support.
+    /// </summary>
+    public BitcoinJob CloneWithMflexIdTag(byte[] tag, long deltaSats = 0, string bonusAddress = null, long bonusSats = 0)
+    {
+        var clone = (BitcoinJob) MemberwiseClone();
+
+        // clone job-params array so per-worker coinbase2 does not overwrite base job
+        clone.jobParams = (object[]) jobParams.Clone();
+
+        clone.coinbaseFinal = BuildCoinbaseFinalWithMflexId(tag, deltaSats, bonusAddress, bonusSats);
+        clone.coinbaseFinalHex = clone.coinbaseFinal.ToHexString();
+        clone.jobParams[3] = clone.coinbaseFinalHex; // coinbase2 (final) is at index 3
+
+        return clone;
     }
 
     public object GetJobParams(bool isNew)

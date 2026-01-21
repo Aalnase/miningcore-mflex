@@ -219,7 +219,7 @@ public abstract class BitcoinJobManagerBase<TJob> : JobManagerBase<TJob>
         }
     }
 
-    protected virtual async Task UpdateNetworkStatsAsync(CancellationToken ct)
+    private async Task UpdateNetworkStatsAsync(CancellationToken ct)
     {
         try
         {
@@ -261,6 +261,8 @@ public abstract class BitcoinJobManagerBase<TJob> : JobManagerBase<TJob>
         var submitBlockRequest = hasSubmitBlockMethod
             ? new RpcRequest(BitcoinCommands.SubmitBlock, new[] { blockHex })
             : new RpcRequest(BitcoinCommands.GetBlockTemplate, new { mode = "submit", data = blockHex });
+
+            logger.Info(() => $"[RPC] Submit via {(hasSubmitBlockMethod ? "submitblock" : "getblocktemplate(mode=submit)")} height={share.BlockHeight} hash={share.BlockHash}");
 
         var batch = new []
         {
@@ -339,7 +341,7 @@ public abstract class BitcoinJobManagerBase<TJob> : JobManagerBase<TJob>
         }
     }
 
-    protected virtual async Task UpdateNetworkStatsLegacyAsync(CancellationToken ct)
+    private async Task UpdateNetworkStatsLegacyAsync(CancellationToken ct)
     {
         try
         {
@@ -472,35 +474,11 @@ public abstract class BitcoinJobManagerBase<TJob> : JobManagerBase<TJob>
 
         // chain detection
         if(!hasLegacyDaemon)
-        {
-            // annoying special cases
-            switch(blockchainInfoResponse.Chain.ToLower())
-            {
-                // mainnet
-                case "nexa":
-                case "scash":
-                    network = Network.Main;
-                    break;
-
-                // testnet
-                case "nexatest":
-                case "scashtestnet":
-                    network = Network.TestNet;
-                    break;
-
-                // regtest
-                case "nexareg":
-                case "scashregtest":
-                    network = Network.RegTest;
-                    break;
-
-                default:
-                    network = Network.GetNetwork(blockchainInfoResponse.Chain.ToLower());
-                    break;
-            }
-        }
+            network = (blockchainInfoResponse.Chain.ToLower() == "nexa") ? Network.Main : Network.GetNetwork(blockchainInfoResponse.Chain.ToLower());
         else
             network = daemonInfoResponse.Testnet ? Network.TestNet : Network.Main;
+
+        PostChainIdentifyConfigure();
 
         // ensure pool owns wallet
         if(validateAddressResponse is not {IsValid: true})
@@ -559,8 +537,6 @@ public abstract class BitcoinJobManagerBase<TJob> : JobManagerBase<TJob>
             .Concat()
             .Subscribe();
 
-        PostChainIdentifyConfigure();
-
         SetupCrypto();
         SetupJobUpdates(ct);
     }
@@ -573,7 +549,7 @@ public abstract class BitcoinJobManagerBase<TJob> : JobManagerBase<TJob>
         switch(addressType.Value)
         {
             case BitcoinAddressType.BechSegwit:
-                return BitcoinUtils.BechSegwitAddressToDestination(poolConfig.Address, network, extraPoolConfig?.BechPrefix);
+                return BitcoinUtils.BechSegwitAddressToDestination(poolConfig.Address, network, "mflex");
 
             case BitcoinAddressType.BCash:
                 return BitcoinUtils.BCashAddressToDestination(poolConfig.Address, network);

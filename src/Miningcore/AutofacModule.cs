@@ -28,6 +28,7 @@ using Miningcore.Mining;
 using Miningcore.Notifications;
 using Miningcore.Payments;
 using Miningcore.Payments.PaymentSchemes;
+using Miningcore.Stratum;
 using Miningcore.Time;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
@@ -76,6 +77,10 @@ public class AutofacModule : Module
         builder.RegisterType<StandardClock>()
             .AsImplementedInterfaces()
             .SingleInstance();
+        // Stratum worker connection tracking
+        builder.RegisterType<Miningcore.Stratum.WorkerConnectionTracker>()
+             .As<Miningcore.Stratum.IWorkerConnectionTracker>()
+             .SingleInstance();
 
         builder.RegisterType<IntegratedBanManager>()
             .Keyed<IBanManager>(BanManagerKind.Integrated)

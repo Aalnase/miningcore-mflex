@@ -153,8 +153,19 @@ public abstract class StratumServer
             if (DisconnectIfBanned(socket, remoteEndpoint))
                 return;
 
+            // WorkerConnectionTracker aus dem Container holen
+            var workerTracker = ctx.Resolve<IWorkerConnectionTracker>();
+
             // init connection
-            var connection = new StratumConnection(logger, rmsm, clock, CorrelationIdGenerator.GetNextId(), clusterConfig.Logging.GPDRCompliant);
+            var connection = new StratumConnection(
+                logger,
+                rmsm,
+                clock,
+                CorrelationIdGenerator.GetNextId(),
+                clusterConfig.Logging.GPDRCompliant,
+                poolConfig.Id,
+                port.IPEndPoint.Port,
+                workerTracker);
 
             logger.Info(() => $"[{connection.ConnectionId}] Accepting connection from {remoteEndpoint.Address.CensorOrReturn(clusterConfig.Logging.GPDRCompliant)}:{remoteEndpoint.Port} ...");
 
