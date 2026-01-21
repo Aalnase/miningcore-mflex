@@ -1,0 +1,10 @@
+.git
+.github
+**/bin
+**/obj
+**/out
+**/stage*
+build*
+*.zip
+*.tar.gz
+.DS_Store
