@@ -4,7 +4,11 @@ RUN apt-get update && \
     apt-get -y install cmake clang ninja-build build-essential libssl-dev pkg-config libboost-all-dev libsodium-dev libzmq5 libzmq3-dev golang-go libgmp-dev libc++-dev zlib1g-dev
 COPY . .
 WORKDIR /app/src/Miningcore
-RUN dotnet publish -c Release --framework net6.0 -o ../../build
+RUN dotnet publish -c Release --framework net6.0 -o ../../build \
+    -p:GetVersion=false \
+    -p:UpdateAssemblyInfo=false \
+    -p:WriteVersionInfoToBuildLog=false \
+    -p:UpdateVersionProperties=false
 
 FROM mcr.microsoft.com/dotnet/aspnet:6.0-jammy
 WORKDIR /app

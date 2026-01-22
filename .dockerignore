@@ -7,3 +7,4 @@ build*
 *.zip
 *.tar.gz
 .DS_Store
+.git
