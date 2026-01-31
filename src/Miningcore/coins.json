@@ -37,6 +37,64 @@
         "explorerTxLink": "https://explorer.fiveg.cash/tx/{0}",
         "explorerAccountLink": "https://explorer.fiveg.cash/address/{0}"
     },
+    "multiflex": {
+        "name": "Multiflex",
+        "canonicalName": "Multiflex",
+        "symbol": "MFLEX",
+        "family": "bitcoin",
+        "website": "https://multiflexcoin.com/",
+        "market": "",
+        "twitter": "",
+        "telegram": "",
+        "github": "",
+        "discord": "",
+        "coinbaseHasher": {
+            "hash": "sha256d"
+        },
+        "headerHasher": {
+            "hash": "sha256d"
+        },
+        "blockHasher": {
+            "hash": "reverse",
+            "args": [
+                {
+                    "hash": "sha256d"
+                }
+            ]
+        },
+        "explorerBlockLink": "https://explorer.multiflexcoin.com/block/$hash$",
+        "explorerTxLink": "https://explorer.multiflexcoin.com/tx/{0}",
+        "explorerAccountLink": "https://explorer.multiflexcoin.com/address/{0}"
+    },
+    "mytherra": {
+        "name": "Mytherra",
+        "canonicalName": "Mytherra",
+        "symbol": "MYT",
+        "family": "bitcoin",
+        "website": "https://www.mytherrablockchain.org/",
+        "market": "https://xeggex.com/market/ACG_USDT",
+        "twitter": "https://x.com/Mytherra",
+        "telegram": "https://t.me/Mytherra_Blockchain",
+        "github": "https://github.com/MYTHERRA/MYTblockchain",
+        "discord": "https://discord.gg/zn3MzkmXhQ",
+        "coinbaseHasher": {
+            "hash": "sha256d"
+        },
+        "headerHasher": {
+            "hash": "sha256d"
+        },
+        "blockHasher": {
+            "hash": "reverse",
+            "args": [
+                {
+                    "hash": "sha256d"
+                }
+            ]
+        },
+        "explorerBlockLink": "https://explorer.mytherrablockchain.org/block/$hash$",
+        "explorerTxLink": "https://explorer.mytherrablockchain.org/tx/{0}",
+        "explorerAccountLink": "https://explorer.mytherrablockchain.org/address/{0}"
+    },
     "argoneum": {
         "name": "Argoneum",
         "symbol": "AGM",
