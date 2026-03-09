@@ -11,7 +11,7 @@ namespace Miningcore.Stratum
         public int Port { get; init; }
 
         /// <summary>
-        /// Letzte Aktivität (z.B. letzter Share oder Ping).
+        /// Last activity (f.e. last Share or Ping).
         /// </summary>
         public DateTime LastActivity { get; set; } = DateTime.UtcNow;
     }
