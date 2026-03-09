@@ -9,6 +9,8 @@ MFLEX/PoL feature-flag: enable special logic only for pools that explicitly opt-
     Supported shapes inside a pool's "extra" object:
     { "mflexEnabled": true } or  { "mflex": { "enabled": true } } or { "polEnabled": true } or { "pol": { "enabled": true } }
 
+    Please see also the example file in /examples/multiflex_pool.json
+
 ### Features
 
 - Supports clusters of pools each running individual currencies
