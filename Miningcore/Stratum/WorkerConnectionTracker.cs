@@ -62,7 +62,7 @@ namespace Miningcore.Stratum
         public IReadOnlyList<WorkerConnectionInfo> GetActiveConnections(string poolId)
         {
             var now = DateTime.UtcNow;
-            // Optional: Inaktive Sessions nach X Minuten rauswerfen
+            // Optional: Kick-off inactive Sessions after X minutes
             var maxIdle = TimeSpan.FromMinutes(10);
 
             var result = _connections.Values
@@ -84,7 +84,7 @@ namespace Miningcore.Stratum
                 select new PortStats
                 {
                     Port = g.Key,
-                    ActiveWorkers = g.Count(), // Anzahl Worker-Verbindungen
+                    ActiveWorkers = g.Count(), // number Worker-Connections
                     UniqueMiners = g.Select(x => x.Miner).Where(x => !string.IsNullOrEmpty(x)).Distinct().Count()
                 };
 
