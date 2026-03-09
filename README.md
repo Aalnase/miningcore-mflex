@@ -37,9 +37,8 @@ Code contributions are very welcome and should be submitted as standard [pull re
 ## Building on Debian/Ubuntu
 
 ```console
-git clone https://github.com/blackmennewstyle/miningcore
-cd miningcore
-```
+git clone https://github.com/Aalnase/miningcore-mflex
+cd miningcore-mflex```
 
 Depending on your OS Version run either of these scripts:
 
@@ -82,8 +81,8 @@ build-windows.bat
 In case you don't want to install any dependencies then you can build the app using the official Microsoft .NET SDK Docker image.
 
 ```console
-git clone https://github.com/blackmennewstyle/miningcore
-cd miningcore
+git clone https://github.com/Aalnase/miningcore-mflex
+cd miningcore-mflex
 ```
 Then build using Docker:
 
