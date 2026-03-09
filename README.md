@@ -3,6 +3,14 @@
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg)]()
 
 <img src="https://github.com/blackmennewstyle/miningcore/raw/master/logo.png" width="150">
+IMPORTANT NOTE: To use Multiflex and to switch on the Extra Payments (PoL) you must add in your cofig.json in the pool-part from Multiflex:
+
+MFLEX/PoL feature-flag: enable special logic only for pools that explicitly opt-in via pool-config "extra".
+    // Supported shapes inside a pool's "extra" object:
+    //   { "mflexEnabled": true }
+    //   { "mflex": { "enabled": true } }
+    //   { "polEnabled": true }
+    //   { "pol": { "enabled": true } }
 
 ### Features
 
